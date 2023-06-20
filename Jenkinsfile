@@ -4,6 +4,18 @@ pipeline {
   stages {
     stage('Build') {
       steps {
+        steps {
+            // Set up the Gradle environment
+            tool 'Gradle'
+
+            // Build the Spring Boot application using Gradle
+            sh 'gradle build'
+          }
+      }
+    }
+
+    stage('dockerize') {
+      steps {
         // Build the Docker image
         script {
           docker.build('your-image-name:your-tag', '-f Dockerfile .')
