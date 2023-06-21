@@ -37,6 +37,7 @@ pipeline {
                             docker push $DOCKERHUB_USERNAME/todo_app:$VERSION
                             docker logout
                         '''
+
                     }
                 }
             }
