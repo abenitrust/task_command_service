@@ -1,37 +1,40 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-    stage('Build') {
-      steps {
-        steps {
-            // Set up the Gradle environment
-            tool 'Gradle'
-
-            // Build the Spring Boot application using Gradle
-            sh 'gradle build'
-          }
-      }
-    }
-
-    stage('dockerize') {
-      steps {
-        // Build the Docker image
-        script {
-          docker.build('your-image-name:your-tag', '-f Dockerfile .')
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/abenitrust/task_command_service.git']]])
+            }
         }
-      }
-    }
 
-//     stage('Publish') {
-//       steps {
-//         // Publish the Docker image to a registry
-//         script {
-//           docker.withRegistry('https://your-docker-registry.com', 'your-registry-credentials') {
-//             docker.image('your-image-name:your-tag').push()
-//           }
-//         }
-//       }
-//     }
-  }
+        stage('Build with gradle') {
+            steps {
+                sh './gradlew clean build'
+            }
+        }
+
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def version = "lts"
+                    def imageName = "command_task_service:${version}"
+                    def dockerImage = docker.build(imageName, "--file Dockerfile .")
+                    env.IMAGE_NAME = imageName
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://your-docker-registry', 'your-docker-credentials') {
+                        def customImage = docker.image('your-image-name:your-tag')
+                        customImage.push()
+                    }
+                }
+            }
+        }
+    }
 }
