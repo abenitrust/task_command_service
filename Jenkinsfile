@@ -10,7 +10,7 @@ pipeline {
 
         stage('Build with gradle') {
             steps {
-                sh './gradlew clean build'
+                sh './gradlew build'
             }
         }
 
@@ -22,18 +22,21 @@ pipeline {
                     def imageName = "command_task_service:${version}"
                     def dockerImage = docker.build(imageName, "--file Dockerfile .")
                     env.IMAGE_NAME = imageName
+                    env.VERSION = version
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                script {
-                    withCredentials([string(credentialsId: 'docker_hub',  passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
-                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-                        def customImage = docker.image(env.IMAGE_NAME)
-                        sh "docker push ${DOCKERHUB_USERNAME}/{env.imageName}"
-                        sh "docker logout"
+                withCredentials([usernamePassword(credentialsId: 'docker_hub', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    script {
+                        sh '''
+                            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+                            docker tag $IMAGE_NAME $DOCKERHUB_USERNAME/todo_app:$VERSION
+                            docker push $DOCKERHUB_USERNAME/todo_app:$VERSION
+                            docker logout
+                        '''
                     }
                 }
             }
