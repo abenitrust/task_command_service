@@ -32,7 +32,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'docker_hub',  passwordVariable: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKERHUB_USERNAME')]) {
                         sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
                         def customImage = docker.image(env.IMAGE_NAME)
-                        sh "docker push ${DOCKERHUB_USERNAME}/{env.imageName}
+                        sh "docker push ${DOCKERHUB_USERNAME}/{env.imageName}"
                         sh "docker logout"
                     }
                 }
